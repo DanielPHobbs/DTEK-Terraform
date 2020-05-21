@@ -3,6 +3,8 @@ variable "client_id" {}
 variable "client_secret" {}
 variable "tenant_id" {}
 
+variable "prefix" {default = "DtekAZ-TEST"}
+
 #Add variables for Subnet & ResourceGroup
 
 provider "azurerm" {
@@ -11,17 +13,21 @@ provider "azurerm" {
   client_id       = "${var.client_id}"
   client_secret   = "${var.client_secret}"
 }
+
+#########################################################
 # refer to a resource group
 data "azurerm_resource_group" "test" {
   name = "nancyResourceGroup"
 }
 
-#refer to a subnet
+#refer to a subnet - 
 data "azurerm_subnet" "test" {
   name                 = "mySubnet"
   virtual_network_name = "myVnet"
   resource_group_name  = "nancyResourceGroup"
 }
+
+#########################################################
 
 resource "azurerm_network_interface" "test" {
   name                = "nic-test"
@@ -37,7 +43,7 @@ resource "azurerm_network_interface" "test" {
 }
 
 resource "azurerm_virtual_machine" "web_server" {
-  name                  = "server"
+  name                  = "${var.prefix}-SRV001"
   location              = "${data.azurerm_resource_group.test.location}"
   resource_group_name   = "${data.azurerm_resource_group.test.name}"
   network_interface_ids = ["${azurerm_network_interface.test.id}"]
@@ -57,14 +63,24 @@ resource "azurerm_virtual_machine" "web_server" {
     managed_disk_type = "Standard_LRS"
   }
 
+  # Uncomment this line to delete the OS disk automatically when deleting the VM
+  delete_os_disk_on_termination = true
+
+  # Uncomment this line to delete the data disks automatically when deleting the VM
+  delete_data_disks_on_termination = true
+
   os_profile {
-    computer_name      = "server"
-    admin_username     = "server"
+    computer_name      = "${var.prefix}-SRV001"
+    admin_username     = "${var.prefix}VMadmin"
     admin_password     = "Passw0rd1234"
 
   }
 
   os_profile_windows_config {
+  }
+
+tags = {
+    environment = "staging"
   }
 
 }
