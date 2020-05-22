@@ -13,7 +13,7 @@ SrvName1 = "DtekAZ-TEST-Srv01"
 SrvName2 = "DtekAZ-TEST-Srv02"
 
 location = "West Europe"
-Grafana_RG_name     = "RG-GRAFANA1"
+Grafana_RG_name  = "RG-GRAFANA1"
 
 
 NWDeploySubNet="DTEKTEST-MIDTIER-SN1"
@@ -25,7 +25,7 @@ NWDeployRG="DTEKTEST-NW1-RG1"
 vm_username = "dtekazvm-admin"
 vm_password = "$up3rSecur3P@ss"
 
-
+###### For New VNET #######
 #vnet_cidr = "192.168.0.0/16"
 #subnet1_cidr = "192.168.1.0/24"
 #subnet2_cidr= "192.168.2.0/24"
