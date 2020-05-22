@@ -10,38 +10,44 @@ provider "azurerm" {
 }
 
 #########################################################
-# refer to a resource group
-data "azurerm_resource_group" "test" {
-  name = "nancyResourceGroup"
+# refer to an existing resource group
+
+#data "azurerm_resource_group" "TestENVENV" {name = "RG-GRAFANA1"}
+
+# create a new resource group
+resource "azurerm_resource_group" "rg" {
+        name = "${var.Grafana_RG_name}"
+        location = "${var.location}"
 }
 
-#refer to a subnet - 
-data "azurerm_subnet" "test" {
-  name                 = "mySubnet"
-  virtual_network_name = "myVnet"
-  resource_group_name  = "nancyResourceGroup"
+
+#refer to an existing subnet - 
+data "azurerm_subnet" "TestENV" {
+  name                 = "${var.NWDeploySubNet}"
+  virtual_network_name = "${var.NWDeployVNET}"
+  resource_group_name  = "${var.NWDeployRG}"
 }
 
 #########################################################
 
-resource "azurerm_network_interface" "test" {
-  name                = "nic-test"
-  location            = "${data.azurerm_resource_group.test.location}"
-  resource_group_name = "${data.azurerm_resource_group.test.name}"
+resource "azurerm_network_interface" "TestENV" {
+  name                = "${var.SrvName1}-nic"
+  location            = "${data.azurerm_resource_group.TestENV.location}"
+  resource_group_name = "${data.azurerm_resource_group.TestENV.name}"
 
   ip_configuration {
-    name                          = "testconfiguration1"
-    subnet_id                     = "${data.azurerm_subnet.test.id}"
+    name                          = "TestENVconfiguration1"
+    subnet_id                     = "${data.azurerm_subnet.TestENV.id}"
     private_ip_address_allocation = "dynamic"
-    public_ip_address_id          = "${azurerm_public_ip.test.id}"
+    public_ip_address_id          = "${azurerm_public_ip.TestENV.id}"
   }
 }
 
 resource "azurerm_virtual_machine" "web_server" {
-  name                  = "${var.prefix}-SRV001"
-  location              = "${data.azurerm_resource_group.test.location}"
-  resource_group_name   = "${data.azurerm_resource_group.test.name}"
-  network_interface_ids = ["${azurerm_network_interface.test.id}"]
+  name                  = "${var.SrvName1}"
+  location              = "${data.azurerm_resource_group.TestENV.location}"
+  resource_group_name   = "${data.azurerm_resource_group.TestENV.name}"
+  network_interface_ids = ["${azurerm_network_interface.TestENV.id}"]
   vm_size               = "Standard_B2s"
 
   storage_image_reference {
@@ -52,7 +58,7 @@ resource "azurerm_virtual_machine" "web_server" {
   }
 
   storage_os_disk {
-    name              = "server-os"
+    name              = "${var.SrvName1}-OS"
     caching           = "ReadWrite"
     create_option     = "FromImage"
     managed_disk_type = "Standard_LRS"
@@ -65,9 +71,9 @@ resource "azurerm_virtual_machine" "web_server" {
   delete_data_disks_on_termination = true
 
   os_profile {
-    computer_name      = "${var.prefix}-SRV001"
-    admin_username     = "${var.prefix}VMadmin"
-    admin_password     = "Passw0rd1234"
+    computer_name      = "${var.SrvName1}"
+    admin_username     = "${var.vm_username}"
+    admin_password     = "${var.vm_password}"
 
   }
 
@@ -75,7 +81,7 @@ resource "azurerm_virtual_machine" "web_server" {
   }
 
 tags = {
-    environment = "staging"
+    environment = "${var.prefix}"
   }
 
 }

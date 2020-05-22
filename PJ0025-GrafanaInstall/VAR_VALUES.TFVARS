@@ -5,23 +5,27 @@ client_secret = "2fc66261-daa4-4834-bba0-babdd5444087"
 tenant_id = "92832cfc-349a-4b12-af77-765b6f10b51f"
 
 ####################################
-prefix="DtekAZ-TEST"
+
+prefix = "DtekAZ-TEST"
+
+
+SrvName1 = "DtekAZ-TEST-Srv01"
+SrvName2 = "DtekAZ-TEST-Srv02"
+
+location = "West Europe"
+Grafana_RG_name     = "RG-GRAFANA1"
+
+
+NWDeploySubNet="DTEKTEST-MIDTIER-SN1"
+NWDeployVNET="DTEKTEST-VNet1"
+NWDeployRG="DTEKTEST-NW1-RG1"
 
 
 
+vm_username = "dtekazvm-admin"
+vm_password = "$up3rSecur3P@ss"
 
-
-#location = "East US"
-#resource_group_name     = "Terraform-LinuxAcademy"
-
-
-#DeploySubNet=""
-#DeployVNET=""
-#DeployRG=""
 
 #vnet_cidr = "192.168.0.0/16"
 #subnet1_cidr = "192.168.1.0/24"
 #subnet2_cidr= "192.168.2.0/24"
-
-#vm_username = "dtekazvm-admin"
-#vm_password = "$up3rSecur3P@ss"
