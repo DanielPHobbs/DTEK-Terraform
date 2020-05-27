@@ -46,6 +46,8 @@ resource "azurerm_mysql_database" "GrafanaDB" {
   collation           = "utf8_unicode_ci"
 }
 
+
+#use one of these 
 resource "azurerm_mysql_firewall_rule" "grafanafw1" {
   name                = "grafanafw-r1"
   resource_group_name = "${data.azurerm_resource_group.rg.name}"
@@ -53,4 +55,10 @@ resource "azurerm_mysql_firewall_rule" "grafanafw1" {
   #add the grafana subnet startand end addresses
   start_ip_address    = "40.112.0.0"
   end_ip_address      = "40.112.255.255"
+}
+resource "azurerm_mysql_virtual_network_rule" "example" {
+  name                = "grafana-mysql-vnet-rule"
+  resource_group_name = "${data.azurerm_resource_group.rg.name}"
+  server_name         = "${azurerm_mysql_server.grafanasrv.name}"
+  subnet_id           = "${var.NWDeploySubNet.subnet_id}"
 }
