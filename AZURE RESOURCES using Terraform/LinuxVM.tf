@@ -1,4 +1,4 @@
-https://docs.ukcloud.com/articles/azure/azs-how-create-vm-terraform.html?tabs=tabid-1%2Ctabid-a
+#https://docs.ukcloud.com/articles/azure/azs-how-create-vm-terraform.html?tabs=tabid-1%2Ctabid-a
 
 
 provider "azurestack" {
@@ -144,7 +144,8 @@ Assign values to the variables in the terraform.tfvars file through the table fo
 
   admin_username  = "user"
   admin_password  = "Password123!"
-Declare the variables here in the variables.tf file for use in the main script
+
+#Declare the variables here in the variables.tf file for use in the main script
 
   variable "arm_endpoint" {
     type = "string"
@@ -201,3 +202,21 @@ Declare the variables here in the variables.tf file for use in the main script
     type    = "string"
     default = "Standard_DS2_v2"
   }
+
+
+#Assign values to the variables in the terraform.tfvars file
+  arm_endpoint    = "https://management.{region}.{domain}"
+  subscription_id = "xxxxx-xxxx-xxxx-xxxx-xxxxxxxxxx"
+  client_id       = "applicationId"
+  client_secret   = "applicationPassword"
+  tenant_id       = "xxxxx-xxxx-xxxx-xxxx-xxxxxxxxxx"
+
+  location        = "frn00006"
+  vm_count        = 1
+  vm_image_string = "OpenLogic/CentOS/7.5/latest"
+  vm_size         = "Standard_DS2_v2"
+  rg_name         = "MyResourceGroup"
+  rg_tag          = "Production"
+
+  admin_username  = "user"
+  admin_password  = "Password123!"
