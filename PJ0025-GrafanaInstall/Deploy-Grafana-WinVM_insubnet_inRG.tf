@@ -32,8 +32,8 @@ data "azurerm_subnet" "TestENV" {
 
 resource "azurerm_network_interface" "TestENV" {
   name                = "${var.SrvName1}-nic"
-  location            = "${data.azurerm_resource_group.TestENV.location}"
-  resource_group_name = "${data.azurerm_resource_group.TestENV.name}"
+  location            = "${data.azurerm_resource_group.rg.location}"
+  resource_group_name = "${data.azurerm_resource_group.rg.name}"
 
   ip_configuration {
     name                          = "TestENVconfiguration1"
@@ -45,8 +45,8 @@ resource "azurerm_network_interface" "TestENV" {
 
 resource "azurerm_virtual_machine" "web_server" {
   name                  = "${var.SrvName1}"
-  location              = "${data.azurerm_resource_group.TestENV.location}"
-  resource_group_name   = "${data.azurerm_resource_group.TestENV.name}"
+  location              = "${data.azurerm_resource_group.rg.location}"
+  resource_group_name   = "${data.azurerm_resource_group.rg.name}"
   network_interface_ids = ["${azurerm_network_interface.TestENV.id}"]
   vm_size               = "Standard_B2s"
 
