@@ -1,54 +1,49 @@
 #https://www.terraform.io/docs/providers/azurerm/r/application_gateway.html
 
-resource "azurerm_resource_group" "example" {
-  name     = "example-resources"
-  location = "West US"
-}
+data "azurerm_resource_group" "rg" {
+    name = "RG-GRAFANA1"
+    }
 
-resource "azurerm_virtual_network" "example" {
-  name                = "example-network"
-  resource_group_name = azurerm_resource_group.example.name
-  location            = azurerm_resource_group.example.location
-  address_space       = ["10.254.0.0/16"]
-}
+
+
+
 
 resource "azurerm_subnet" "frontend" {
-  name                 = "frontend"
-  resource_group_name  = azurerm_resource_group.example.name
-  virtual_network_name = azurerm_virtual_network.example.name
+  name                 = "grafana-frontend"
+  resource_group_name  = "${data.azurerm_resource_group.rg.name}"
+  virtual_network_name = "${var.NWDeployVNET}"
   address_prefix       = "10.254.0.0/24"
 }
 
 resource "azurerm_subnet" "backend" {
-  name                 = "backend"
-  resource_group_name  = azurerm_resource_group.example.name
-  virtual_network_name = azurerm_virtual_network.example.name
+  name                 = "grafana-backend"
+  resource_group_name  = "${data.azurerm_resource_group.rg.name}"
+  virtual_network_name = "${var.NWDeployVNET}"
   address_prefix       = "10.254.2.0/24"
 }
 
 resource "azurerm_public_ip" "example" {
-  name                = "example-pip"
-  resource_group_name = azurerm_resource_group.example.name
-  location            = azurerm_resource_group.example.location
+  name                = "grafana-pip"
+  resource_group_name = "${data.azurerm_resource_group.rg.name}"
+  location            = "${data.azurerm_resource_group.rg.location}"
   allocation_method   = "Dynamic"
 }
 
 # since these variables are re-used - a locals block makes this more maintainable
 locals {
-  backend_address_pool_name      = "${azurerm_virtual_network.example.name}-beap"
-  frontend_port_name             = "${azurerm_virtual_network.example.name}-feport"
-  frontend_ip_configuration_name = "${azurerm_virtual_network.example.name}-feip"
-  http_setting_name              = "${azurerm_virtual_network.example.name}-be-htst"
-  listener_name                  = "${azurerm_virtual_network.example.name}-httplstn"
-  request_routing_rule_name      = "${azurerm_virtual_network.example.name}-rqrt"
-  redirect_configuration_name    = "${azurerm_virtual_network.example.name}-rdrcfg"
+  backend_address_pool_name      = "${var.NWDeployVNET}-beap"
+  frontend_port_name             = "${var.NWDeployVNET}-feport"
+  frontend_ip_configuration_name = "${var.NWDeployVNET}-feip"
+  http_setting_name              = "${var.NWDeployVNET}-be-htst"
+  listener_name                  = "${var.NWDeployVNET}-httplstn"
+  request_routing_rule_name      = "${var.NWDeployVNET}-rqrt"
+  redirect_configuration_name    = "${var.NWDeployVNET}-rdrcfg"
 }
 
 resource "azurerm_application_gateway" "network" {
-  name                = "example-appgateway"
-  resource_group_name = azurerm_resource_group.example.name
-  location            = azurerm_resource_group.example.location
-
+  name                = "grafana-appgateway"
+  resource_group_name = "${data.azurerm_resource_group.rg.name}"
+  location            = "${data.azurerm_resource_group.rg.location}"
   sku {
     name     = "Standard_Small"
     tier     = "Standard"
@@ -56,8 +51,8 @@ resource "azurerm_application_gateway" "network" {
   }
 
   gateway_ip_configuration {
-    name      = "my-gateway-ip-configuration"
-    subnet_id = azurerm_subnet.frontend.id
+    name      = "grafana-gateway-ip-configuration"
+    subnet_id = "${azurerm_subnet.frontend.id}"
   }
 
   frontend_port {

@@ -46,8 +46,8 @@ resource "azurerm_mysql_database" "GrafanaDB" {
   collation           = "utf8_unicode_ci"
 }
 
-resource "azurerm_mysql_firewall_rule" "grafanafw" {
-  name                = "grafana"
+resource "azurerm_mysql_firewall_rule" "grafanafw1" {
+  name                = "grafanafw-r1"
   resource_group_name = "${data.azurerm_resource_group.rg.name}"
   server_name         = "${azurerm_mysql_server.grafanasrv.name}"
   #add the grafana subnet startand end addresses
