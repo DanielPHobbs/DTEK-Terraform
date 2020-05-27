@@ -3,17 +3,16 @@ provider "azurerm" {
 }
 
 # refer to an existing resource group
-
-data "azurerm_resource_group" "TestENVENV" {
+data "azurerm_resource_group" "rg" {
     name = "RG-GRAFANA1"
     }
 
 
 # Create mysql Instance 
-resource "azurerm_mysql_server" "example" {
+resource "azurerm_mysql_server" "grafanaDB" {
   name                = "Grafana-mysqlserver"
   location            = "${var.location}"
-  resource_group_name = azurerm_resource_group.TestENVENV.name
+  resource_group_name = "${data.azurerm_resource_group.rg.name}"
 
   administrator_login          = "mysqladminun"
   administrator_login_password = "H@Sh1CoR3!"
