@@ -1,5 +1,7 @@
 #https://www.terraform.io/docs/providers/azurerm/r/application_gateway.html
 
+#£0.0209 per gateway hour (~£15.235/month)
+
 data "azurerm_resource_group" "rg" {
     name = "RG-GRAFANA1"
     }
@@ -19,7 +21,7 @@ resource "azurerm_subnet" "backend" {
   name                 = "grafana-backend"
   resource_group_name  = "${data.azurerm_resource_group.rg.name}"
   virtual_network_name = "${var.NWDeployVNET}"
-  address_prefix       = "10.254.2.0/24"
+  address_prefix       = "10.254.2.0/24" #/28
 }
 
 resource "azurerm_public_ip" "example" {

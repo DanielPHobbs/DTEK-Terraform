@@ -7,7 +7,7 @@ provider "azurerm" {
   # If you are using version 1.x, the "features" block is not allowed.
   version = "~>2.0"
   features {}
-  
+
 # refer to an existing resource group
 data "azurerm_resource_group" "rg" {
     name = "RG-GRAFANA1"
@@ -16,12 +16,12 @@ data "azurerm_resource_group" "rg" {
 
 # Create mysql Instance 
 resource "azurerm_mysql_server" "grafanasrv" {
-  name                = "Grafana-mysqlserver"
+  name                = "grafana-mysqlserver" #LowerOnly
   location            = "${var.location}"
   resource_group_name = "${data.azurerm_resource_group.rg.name}"
 
-  administrator_login          = "grafanamysqladmin"
-  administrator_login_password = "H@Sh1CoR3!"
+  administrator_login          = "grafmysqladmin" #Admin username must be at least 1 characters and at most 16 characters.
+  administrator_login_password = "Dtek@2020!DBadmin09"
 
    #{pricing tier}_{compute generation}_{vCores} £0.060/hour GB/month	£0.089
   sku_name   = "B_Gen5_2"
