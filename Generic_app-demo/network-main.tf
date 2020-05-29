@@ -17,7 +17,7 @@ resource "azurerm_resource_group" "network-rg" {
     environment = var.environment
   }
 }
-
+#
 # Create the network VNET
 resource "azurerm_virtual_network" "network-vnet" {
   name = "${var.app_name}-${var.environment}-vnet"
