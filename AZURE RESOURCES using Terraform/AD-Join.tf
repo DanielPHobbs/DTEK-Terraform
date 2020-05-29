@@ -1,6 +1,6 @@
 
 
-https://github.com/ghostinthewires/terraform-azurerm-ad-join
+#https://github.com/ghostinthewires/terraform-azurerm-ad-join
 module "ad-join" {
   source  = "ghostinthewires/ad-join/azurerm"
   version = "1.0.0"
