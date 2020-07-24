@@ -1,4 +1,5 @@
-#https://www.terraform.io/docs/providers/azurerm/r/monitor_scheduled_query_rules_alert.html
+#https://www.terraform.io/docs/providers/azurerm/r/monitor_scheduled_query_rules_alert.html#example-usage
+
 
 resource "azurerm_resource_group" "example" {
   name     = "monitoring-resources"
