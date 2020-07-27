@@ -11,6 +11,14 @@ resource "azurerm_resource_group" "rg" {
     }
 }
 
+variable "username" {  
+  default = "dtezterraVMadmin"  
+}  
+  
+variable "password" {  
+  default = "Password@1"  
+}  
+
 #Create virtual network
 resource "azurerm_virtual_network" "vnet" {
     name                = "vnet-test-NE-001"
@@ -148,9 +156,18 @@ storage_data_disk {  //Here defined actual data disk by referring to above struc
 
   os_profile {
     computer_name  = "Winvmterraform"
-    admin_username = "terrauser"
-    admin_password = "Password1234!"
+    admin_username = var.username  
+    admin_password = var.password 
   }
+
+    os_profile_windows_config {  //Here defined autoupdate config and also vm agent config
+    enable_automatic_upgrades = true  
+    provision_vm_agent        = true  
+  
+    winrm = {  //Here defined WinRM connectivity config
+      protocol = "http"  
+    }  
+  }  
 
 
 tags = {
