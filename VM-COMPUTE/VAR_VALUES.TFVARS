@@ -6,26 +6,15 @@ tenant_id = "92832cfc-349a-4b12-af77-765b6f10b51f"
 
 ####################################
 
-prefix = "DtekAZ-TEST"
+location        = "frn00006"
+  vm_count        = 3
+  vm_image_string = "OpenLogic/CentOS/7.5/latest"
+  vm_size         = "Standard_DS1"
+  rg_name         = "MyResourceGroup"
+  rg_tag          = "Production"
 
-
-SrvName1 = "DtekAZ-TEST-Srv01"
-
-
-location = "West Europe"
-Grafana_RG_name  = "RG-GRAFANA1"
-
-
-NWDeploySubNet="DTEKTEST-MIDTIER-SN1"
-NWDeployVNET="DTEKTEST-VNet1"
-NWDeployRG="DTEKTEST-NW1-RG1"
+  admin_username  = "user"
+  admin_password  = "Password123!"
 
 
 
-vm_username = "dtekazvm-admin"
-vm_password = "$up3rSecur3P@ss"
-
-###### For New VNET #######
-#vnet_cidr = "192.168.0.0/16"
-#subnet1_cidr = "192.168.1.0/24"
-#subnet2_cidr= "192.168.2.0/24"

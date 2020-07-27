@@ -3,17 +3,43 @@ variable "client_id" {}
 variable "client_secret" {}
 variable "tenant_id" {}
 
-variable "location" {}
+ variable "arm_endpoint" {
+    type = "string"
+  }
 
 
-variable "prefix" {}
+  variable "admin_username" {
+    type     = "string"
+    default  = "username"
+  }
 
-######## Network #############
+  variable "admin_password" {
+    type     = "string"
+    default  = "Password123!"
+  }
 
+  variable "location" {
+    type     = "string"
+  }
 
+  variable "rg_tag" {
+    type    = "string"
+    default = "production"
+  }
 
-###### GRAFANA Specific ######
+  variable "rg_name" {
+    type    = "string"
+  }
 
-variable "SrvName1" {}
+  variable "vm_count" {
+    default  = 1
+  }
 
-######### VM specific #########
+  variable "vm_image_string" {
+    type    = "string"
+  }
+
+  variable "vm_size" {
+    type    = "string"
+    default = "Standard_DS2_v2"
+  }
