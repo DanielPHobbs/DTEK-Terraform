@@ -1,10 +1,12 @@
-# Create Network Security Group and rule
+
+################# Create Network Security Group and rule ####################
+
 resource "azurerm_network_security_group" "tfwebnsg" {
   name                = "${var.prefix}-webnsg"
   location            = var.location
   resource_group_name = azurerm_resource_group.tfrg.name
 
-  ##### Add Standard VM NSG #####################
+  ############### Add Standard VM NSG #####################
 
   security_rule {
     name                       = "web"
