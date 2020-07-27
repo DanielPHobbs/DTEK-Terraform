@@ -3,6 +3,8 @@ resource "azurerm_resource_group" "application_security_group-rg" {
   location = "canadacentral"
 }
 
+###########Create ASG's ##############################
+
 resource "azurerm_application_security_group" "application_security_group-asg-appservers" {
   name                = "AppServers"
   location            = azurerm_resource_group.application_security_group-rg.location
@@ -14,6 +16,8 @@ resource "azurerm_application_security_group" "application_security_group-asg-db
   location            = azurerm_resource_group.application_security_group-rg.location
   resource_group_name = azurerm_resource_group.application_security_group-rg.name
 }
+
+########### GetNIC and assign ########################
 
 data "azurerm_network_interface" "network_interface-asg-assign" {
   name                = "vm-nic01"
