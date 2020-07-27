@@ -4,6 +4,8 @@ resource "azurerm_network_security_group" "tfwebnsg" {
   location            = var.location
   resource_group_name = azurerm_resource_group.tfrg.name
 
+  ##### Add Standard VM NSG #####################
+
   security_rule {
     name                       = "web"
     priority                   = 1001
@@ -33,9 +35,9 @@ resource "azurerm_network_interface" "tfwebnic" {
     name      = "${var.prefix}-webnic-config${count.index}"
     subnet_id = azurerm_subnet.tfwebvnet.id
 
-    #private_ip_address_allocation = "dynamic"
-    private_ip_address_allocation = "Static"
-    private_ip_address            = format("10.0.1.%d", count.index + 4)
+    private_ip_address_allocation = "dynamic"
+    #private_ip_address_allocation = "Static"
+    #private_ip_address            = format("10.0.1.%d", count.index + 4)
   }
 
   tags = {
@@ -71,7 +73,7 @@ resource "azurerm_network_interface_application_security_group_association" "tfw
 }
 
 resource "azurerm_availability_set" "tfwebavset" {
-  name                        = "${var.prefix}-webavset"
+  name                        = "${var.prefix}-grafavset"
   location                    = var.location
   resource_group_name         = azurerm_resource_group.tfrg.name
   managed                     = "true"
@@ -99,6 +101,8 @@ resource "azurerm_virtual_machine" "tfwebvm" {
     managed_disk_type = "Premium_LRS"
   }
 
+  ############ Add data disk section ###################
+
   /*
   # custom image
   storage_image_reference {
@@ -115,6 +119,7 @@ resource "azurerm_virtual_machine" "tfwebvm" {
 
   os_profile {
     computer_name  = format("tfwebvm%03d", count.index + 1)
+    ###### Replace with Keyvault variables #############
     admin_username = var.admin_username
     admin_password = var.admin_password
   }
@@ -128,6 +133,7 @@ resource "azurerm_virtual_machine" "tfwebvm" {
   }
 }
 
+#################### VM extension [Convert to Azure Monitor] ##########
 resource "azurerm_virtual_machine_extension" "webvmext" {
   count                = var.webcount
   name                 = "webvmext"
@@ -150,6 +156,8 @@ resource "azurerm_virtual_machine_extension" "webvmext" {
     environment = var.tag
   }
 }
+
+###################Load Balancer resource Setup #####################
 
 resource "azurerm_public_ip" "tflbpip" {
   name                = "${var.prefix}-flbpip"
@@ -213,6 +221,23 @@ resource "azurerm_lb_probe" "lb_probe" {
   number_of_probes    = 2
 }
 
+#################  ASG  ################################
+
+resource "azurerm_application_security_group" "example" {
+  name                = "tf-appsecuritygroup"
+  location            = azurerm_resource_group.example.location
+  resource_group_name = azurerm_resource_group.example.name
+
+  tags = {
+    Hello = "World"
+  }
+}
+
+
+############## Output ###########################
 output "weblb_pip" {
   value = azurerm_public_ip.tflbpip.*.ip_address
 }
+
+
+

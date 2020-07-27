@@ -32,11 +32,11 @@ variable "admin_password" {
 
 # service variables
 variable "prefix" {
-  default = "tfdemo"
+  default = "DtekTFdemo"
 }
 
 variable "location" {
-  default = "koreasouth"
+  default = "NorthEurope"
 }
 
 variable "vmsize" {
