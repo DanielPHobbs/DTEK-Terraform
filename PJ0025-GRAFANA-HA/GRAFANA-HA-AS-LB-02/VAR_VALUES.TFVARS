@@ -6,8 +6,8 @@ tenant_id = "92832cfc-349a-4b12-af77-765b6f10b51f"
 
 ####################################
 
-location        = "frn00006"
-  vm_count        = 3
+  location        = "NorthEurope"
+  vm_count        = 2
   vm_image_string = "OpenLogic/CentOS/7.5/latest"
   vm_size         = "Standard_DS1"
   rg_name         = "MyResourceGroup"

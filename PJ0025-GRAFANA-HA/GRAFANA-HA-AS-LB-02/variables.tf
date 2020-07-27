@@ -17,6 +17,12 @@ variable "tenant_id" {
   default = "add_here"
 }
 
+
+variable "resource_group" {
+  description = "The name of the resource group in which to create the Resources."
+  default = "dtek-grafana-rg02"
+}
+
 # admin password
 variable "admin_username" {
   default = "azureuser"
@@ -41,10 +47,6 @@ variable "location" {
 
 variable "vmsize" {
   default = "Standard_DS1_v2"
-}
-
-variable "osimageuri" {
-  default = "add_here"
 }
 
 variable "webcount" {

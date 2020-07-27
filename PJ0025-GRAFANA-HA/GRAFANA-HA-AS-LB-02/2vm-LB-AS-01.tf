@@ -1,10 +1,15 @@
+###### Create Resource Group #######
+resource "azurerm_resource_group" "rg" {
+  name     = "${var.resource_group}"
+  location = "${var.location}"
+}
 
 ################# Create Network Security Group and rule ####################
 
 resource "azurerm_network_security_group" "tfwebnsg" {
   name                = "${var.prefix}-webnsg"
   location            = var.location
-  resource_group_name = azurerm_resource_group.tfrg.name
+  resource_group_name = azurerm_resource_group.rg.name
 
   ############### Add Standard VM NSG #####################
 
@@ -30,7 +35,7 @@ resource "azurerm_network_interface" "tfwebnic" {
   count                     = var.webcount
   name                      = "${var.prefix}-webnic${count.index}"
   location                  = var.location
-  resource_group_name       = azurerm_resource_group.tfrg.name
+  resource_group_name       = azurerm_resource_group.rg.name
   #-network_security_group_id = azurerm_network_security_group.tfwebnsg.id
 
   ip_configuration {
@@ -77,7 +82,7 @@ resource "azurerm_network_interface_application_security_group_association" "tfw
 resource "azurerm_availability_set" "tfwebavset" {
   name                        = "${var.prefix}-grafavset"
   location                    = var.location
-  resource_group_name         = azurerm_resource_group.tfrg.name
+  resource_group_name         = azurerm_resource_group.rg.name
   managed                     = "true"
   platform_fault_domain_count = 2 # default 3 not working in some regions like Korea
 
@@ -91,7 +96,7 @@ resource "azurerm_virtual_machine" "tfwebvm" {
   count                 = var.webcount
   name                  = "${var.prefix}webvm${count.index}"
   location              = var.location
-  resource_group_name   = azurerm_resource_group.tfrg.name
+  resource_group_name   = azurerm_resource_group.rg.name
   network_interface_ids = [azurerm_network_interface.tfwebnic[count.index].id]
   vm_size               = var.vmsize
   availability_set_id   = azurerm_availability_set.tfwebavset.id
@@ -105,13 +110,6 @@ resource "azurerm_virtual_machine" "tfwebvm" {
 
   ############ Add data disk section ###################
 
-  /*
-  # custom image
-  storage_image_reference {
-    id = "${var.osimageuri}"
-  }
-  */
-
   storage_image_reference {
     publisher = "Canonical"
     offer     = "UbuntuServer"
@@ -121,6 +119,7 @@ resource "azurerm_virtual_machine" "tfwebvm" {
 
   os_profile {
     computer_name  = format("tfwebvm%03d", count.index + 1)
+
     ###### Replace with Keyvault variables #############
     admin_username = var.admin_username
     admin_password = var.admin_password
@@ -164,7 +163,7 @@ resource "azurerm_virtual_machine_extension" "webvmext" {
 resource "azurerm_public_ip" "tflbpip" {
   name                = "${var.prefix}-flbpip"
   location            = var.location
-  resource_group_name = azurerm_resource_group.tfrg.name
+  resource_group_name = azurerm_resource_group.rg.name
   allocation_method   = "Static"
   sku                 = "Standard"
 }
@@ -172,7 +171,7 @@ resource "azurerm_public_ip" "tflbpip" {
 resource "azurerm_lb" "tflb" {
   name                = "${var.prefix}lb"
   location            = var.location
-  resource_group_name = azurerm_resource_group.tfrg.name
+  resource_group_name = azurerm_resource_group.rg.name
   sku                 = "Standard"
 
   frontend_ip_configuration {
@@ -182,14 +181,14 @@ resource "azurerm_lb" "tflb" {
 }
 
 resource "azurerm_lb_backend_address_pool" "tflbbackendpool" {
-  resource_group_name = azurerm_resource_group.tfrg.name
+  resource_group_name = azurerm_resource_group.rg.name
   loadbalancer_id     = azurerm_lb.tflb.id
   name                = "BackEndAddressPool"
 }
 
 resource "azurerm_lb_nat_rule" "lbnatrule" {
   count                          = var.webcount
-  resource_group_name            = azurerm_resource_group.tfrg.name
+  resource_group_name            = azurerm_resource_group.rg.name
   loadbalancer_id                = azurerm_lb.tflb.id
   name                           = "ssh-${count.index}"
   protocol                       = "tcp"
@@ -199,7 +198,7 @@ resource "azurerm_lb_nat_rule" "lbnatrule" {
 }
 
 resource "azurerm_lb_rule" "lb_rule" {
-  resource_group_name            = azurerm_resource_group.tfrg.name
+  resource_group_name            = azurerm_resource_group.rg.name
   loadbalancer_id                = azurerm_lb.tflb.id
   name                           = "LBRule"
   protocol                       = "tcp"
@@ -214,7 +213,7 @@ resource "azurerm_lb_rule" "lb_rule" {
 }
 
 resource "azurerm_lb_probe" "lb_probe" {
-  resource_group_name = azurerm_resource_group.tfrg.name
+  resource_group_name = azurerm_resource_group.rg.name
   loadbalancer_id     = azurerm_lb.tflb.id
   name                = "tcpProbe"
   protocol            = "tcp"
@@ -223,18 +222,25 @@ resource "azurerm_lb_probe" "lb_probe" {
   number_of_probes    = 2
 }
 
-#################  ASG  ################################
+#################  ASG  --- test this section ################################
 
-resource "azurerm_application_security_group" "example" {
-  name                = "tf-appsecuritygroup"
-  location            = azurerm_resource_group.example.location
-  resource_group_name = azurerm_resource_group.example.name
-
-  tags = {
-    Hello = "World"
-  }
+resource "azurerm_application_security_group" "application_security_group-asg-grafana" {
+  name                = "grafana"
+  location            = var.location
+  resource_group_name = azurerm_resource_group.rg.name
 }
 
+
+data "azurerm_network_interface" "network_interface-asg-assign" {
+  name                = "vm-nic01"
+  resource_group_name = azurerm_resource_group.rg.name
+}
+
+resource "azurerm_network_interface_application_security_group_association" "application_security_group_association" {
+  network_interface_id          = data.azurerm_network_interface.network_interface-asg-assign.id
+  ip_configuration_name         = "ipconfig1"
+  application_security_group_id = azurerm_application_security_group.application_security_group-asg-grafana.id
+}
 
 ############## Output ###########################
 output "weblb_pip" {
