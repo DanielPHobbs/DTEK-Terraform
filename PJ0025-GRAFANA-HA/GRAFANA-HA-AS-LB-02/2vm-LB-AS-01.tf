@@ -27,6 +27,12 @@ key_vault_id = data.azurerm_key_vault.existing.id
 
 ################## Get VNET and SUBNET #########################
 
+#refer to a subnet - 
+data "azurerm_subnet" "Grafnet" {
+  name                 = var.SubNetName
+  virtual_network_name = var.VNetName
+  resource_group_name  = var.VNetRG
+}
 
 
 ######################## Create network interface ##############
@@ -40,7 +46,7 @@ resource "azurerm_network_interface" "grafvmnic" {
 
   ip_configuration {
     name      = "${var.prefix}-grafvmnic-config${count.index}"
-    subnet_id = azurerm_subnet.grafvnet.id
+    subnet_id = azurerm_subnet.grafnet.id
 
     private_ip_address_allocation = "dynamic"
     #private_ip_address_allocation = "Static"

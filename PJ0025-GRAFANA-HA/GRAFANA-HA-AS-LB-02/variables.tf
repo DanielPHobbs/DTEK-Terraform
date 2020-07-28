@@ -23,6 +23,18 @@ variable "resource_group" {
   default = "dtek-grafana-rg02"
 }
 
+variable "SubNetName" {
+  default = "DTEK-FRONTEND-SN1"
+}
+  
+  variable "VNetRG" {
+  default = "DTEKSVRAccessRG1"
+}
+
+variable "VNetName" {
+  default = "DTEK-PRODUCTION-Vnet1"
+}
+
 # service variables
 variable "prefix" {
   default = "GrafHA"
