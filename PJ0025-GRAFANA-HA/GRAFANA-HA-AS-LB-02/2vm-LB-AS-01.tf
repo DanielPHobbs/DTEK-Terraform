@@ -66,12 +66,23 @@ resource "azurerm_network_interface_backend_address_pool_association" "grafbpool
   backend_address_pool_id = azurerm_lb_backend_address_pool.graflbbackendpool.id
 }
 
-/*
+/*   ### NAT rule Reference Only ####
+resource "azurerm_lb_nat_rule" "graf_tcp" {
+  resource_group_name            = azurerm_resource_group.rg.name
+  loadbalancer_id                = azurerm_lb.graflb.id
+  name                           = "RDP-VM-${count.index}"
+  protocol                       = "tcp"
+  frontend_port                  = "5000${count.index + 1}"
+  backend_port                   = 3389
+  frontend_ip_configuration_name = "LoadBalancerFrontEnd"
+  count                          = var.grafvmcount
+}
+
 resource "azurerm_network_interface_nat_rule_association" "grafnatruleassc" {
   count                 = var.grafvmcount
   network_interface_id  = element(azurerm_network_interface.grafvmnic.*.id, count.index)
   ip_configuration_name = "${var.prefix}-grafvmnic-config${count.index}"
-  nat_rule_id           = element(azurerm_lb_nat_rule.lbnatrule.*.id, count.index)
+  nat_rule_id           = element(azurerm_lb_nat_rule.graf_tcp.*.id, count.index)
 }
 */
 ############################## ASG config  #############################
