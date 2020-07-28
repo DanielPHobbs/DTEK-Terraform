@@ -16,8 +16,6 @@ variable "tenant_id" {
   default = "92832cfc-349a-4b12-af77-765b6f10b51f"
 }
 
-
-
 variable "resource_group" {
   description = "The name of the resource group in which to create the Resources."
   default = "dtek-grafana-rg02"

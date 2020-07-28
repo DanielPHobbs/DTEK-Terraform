@@ -35,20 +35,16 @@ resource "azurerm_mysql_server" "grafanasrv" {
   name                = "grafana-mysqlserver" #LowerOnly
   location            = var.location
   resource_group_name = data.azurerm_resource_group.rg.name
-
+  
   administrator_login          = data.azurerm_key_vault_secret.MySQL-User.value 
   administrator_login_password = data.azurerm_key_vault_secret.MySQL-password.value
 
-   
   sku_name   = "B_Gen5_2"
-
-
-  storage_profile {
-    storage_mb            = 2048
-    backup_retention_days = 7
-    geo_redundant_backup  = "Disabled"
-  }
-
+  storage_mb = 5120
+  version    = "5.7"
+  
+  backup_retention_days             = 7
+  geo_redundant_backup_enabled      = false
   auto_grow_enabled                 = true
   infrastructure_encryption_enabled = true
   public_network_access_enabled     = false
@@ -71,8 +67,8 @@ resource "azurerm_mysql_firewall_rule" "grafanafw1" {
   resource_group_name = data.azurerm_resource_group.rg.name
   server_name         = azurerm_mysql_server.grafanasrv.name
   #add the grafana subnet startand end addresses
-  start_ip_address    = "40.112.0.0"
-  end_ip_address      = "40.112.255.255"
+  start_ip_address    = "10.10.30.0"
+  end_ip_address      = "10.10.30.128"
 }
 
 
