@@ -1,46 +1,46 @@
+
+
+provider "azurerm" {
+        features {}
+}
+
 ###### Create Resource Group #######
 resource "azurerm_resource_group" "rg" {
   name     = "${var.resource_group}"
   location = "${var.location}"
 }
 
-################# Create Network Security Group and rule ####################
-
-resource "azurerm_network_security_group" "tfwebnsg" {
-  name                = "${var.prefix}-webnsg"
-  location            = var.location
-  resource_group_name = azurerm_resource_group.rg.name
-
-  ############### Add Standard VM NSG #####################
-
-  security_rule {
-    name                       = "web"
-    priority                   = 1001
-    direction                  = "Inbound"
-    access                     = "Allow"
-    protocol                   = "Tcp"
-    source_port_range          = "*"
-    destination_port_range     = "80"
-    source_address_prefix      = "*"
-    destination_address_prefix = "*"
-  }
-
-  tags = {
-    environment = var.tag
-  }
+data "azurerm_key_vault" "existing" {
+  name                = "MSDN-KeyVault"
+  resource_group_name = "MSDN-KeyVaults"
 }
 
-# Create network interface
-resource "azurerm_network_interface" "tfwebnic" {
-  count                     = var.webcount
-  name                      = "${var.prefix}-webnic${count.index}"
+data "azurerm_key_vault_secret" "dtek-VM-password" {
+name = "DTEK-SRV-ADMIN-PASSWORD"
+key_vault_id = data.azurerm_key_vault.existing.id
+}
+
+data "azurerm_key_vault_secret" "dtek-VM-User" {
+name = "DTEK-ADMIN-USER"
+key_vault_id = data.azurerm_key_vault.existing.id
+}
+
+################## Get VNET and SUBNET #########################
+
+
+
+######################## Create network interface ##############
+
+resource "azurerm_network_interface" "grafvmnic" {
+  count                     = var.grafvmcount
+  name                      = "${var.prefix}-grafvmnic${count.index}"
   location                  = var.location
   resource_group_name       = azurerm_resource_group.rg.name
   #-network_security_group_id = azurerm_network_security_group.tfwebnsg.id
 
   ip_configuration {
-    name      = "${var.prefix}-webnic-config${count.index}"
-    subnet_id = azurerm_subnet.tfwebvnet.id
+    name      = "${var.prefix}-grafvmnic-config${count.index}"
+    subnet_id = azurerm_subnet.grafvnet.id
 
     private_ip_address_allocation = "dynamic"
     #private_ip_address_allocation = "Static"
@@ -51,35 +51,40 @@ resource "azurerm_network_interface" "tfwebnic" {
     environment = var.tag
   }
 }
+###################### Nic LB associations #############################
 
-resource "azurerm_network_interface_security_group_association" "tfwebnic" {
-  count                     = var.appcount
-  network_interface_id      = azurerm_network_interface.tfwebnic[count.index].id
-  network_security_group_id = azurerm_network_security_group.tfwebnsg.id
+resource "azurerm_network_interface_backend_address_pool_association" "grafbpoolassc" {
+  count                   = var.grafvmcount
+  network_interface_id    = element(azurerm_network_interface.grafvmnic.*.id, count.index)
+  ip_configuration_name   = "${var.prefix}-grafvmnic-config${count.index}"
+  backend_address_pool_id = azurerm_lb_backend_address_pool.graflbbackendpool.id
 }
 
-resource "azurerm_network_interface_backend_address_pool_association" "tfwebpoolassc" {
-  count                   = var.webcount
-  network_interface_id    = element(azurerm_network_interface.tfwebnic.*.id, count.index)
-  ip_configuration_name   = "${var.prefix}-webnic-config${count.index}"
-  backend_address_pool_id = azurerm_lb_backend_address_pool.tflbbackendpool.id
-}
-
-resource "azurerm_network_interface_nat_rule_association" "tfnatruleassc" {
-  count                 = var.webcount
-  network_interface_id  = element(azurerm_network_interface.tfwebnic.*.id, count.index)
-  ip_configuration_name = "${var.prefix}-webnic-config${count.index}"
+resource "azurerm_network_interface_nat_rule_association" "grafnatruleassc" {
+  count                 = var.grafvmcount
+  network_interface_id  = element(azurerm_network_interface.grafvmnic.*.id, count.index)
+  ip_configuration_name = "${var.prefix}-grafvmnic-config${count.index}"
   nat_rule_id           = element(azurerm_lb_nat_rule.lbnatrule.*.id, count.index)
 }
 
-resource "azurerm_network_interface_application_security_group_association" "tfwebsecassc" {
-  count                         = var.webcount
-  network_interface_id          = element(azurerm_network_interface.tfwebnic.*.id, count.index)
-  #-ip_configuration_name         = "${var.prefix}-webnic-config${count.index}"
-  application_security_group_id = azurerm_application_security_group.tfwebasg.id
+############################## ASG config  #############################
+
+resource "azurerm_application_security_group" "asg-grafana" {
+  name                = "grafana"
+  location            = var.location
+  resource_group_name = azurerm_resource_group.rg.name
 }
 
-resource "azurerm_availability_set" "tfwebavset" {
+resource "azurerm_network_interface_application_security_group_association" "grafsecassc" {
+  count                         = var.grafvmcount
+  network_interface_id          = element(azurerm_network_interface.grafvmnic.*.id, count.index)
+  #-ip_configuration_name         = "${var.prefix}-webnic-config${count.index}"
+  application_security_group_id = azurerm_application_security_group.asg-grafana.id
+}
+
+############################## AS config  #############################
+
+resource "azurerm_availability_set" "grafavset" {
   name                        = "${var.prefix}-grafavset"
   location                    = var.location
   resource_group_name         = azurerm_resource_group.rg.name
@@ -91,42 +96,46 @@ resource "azurerm_availability_set" "tfwebavset" {
   }
 }
 
-# Create virtual machine
-resource "azurerm_virtual_machine" "tfwebvm" {
-  count                 = var.webcount
-  name                  = "${var.prefix}webvm${count.index}"
+############################ Create virtual machine ####################################
+
+resource "azurerm_virtual_machine" "grafvm" {
+  count                 = var.grafvmcount
+  name                  = "${var.prefix}grafvm${count.index}"
   location              = var.location
   resource_group_name   = azurerm_resource_group.rg.name
-  network_interface_ids = [azurerm_network_interface.tfwebnic[count.index].id]
+  network_interface_ids = [azurerm_network_interface.grafvmnic[count.index].id]
   vm_size               = var.vmsize
-  availability_set_id   = azurerm_availability_set.tfwebavset.id
+  availability_set_id   = azurerm_availability_set.grafavset.id
 
   storage_os_disk {
-    name              = format("%s-web-%03d-osdisk", var.prefix, count.index + 1)
+    name              = format("%s-graf-%03d-osdisk", var.prefix, count.index + 1)
     caching           = "ReadWrite"
     create_option     = "FromImage"
     managed_disk_type = "Premium_LRS"
   }
 
-  ############ Add data disk section ###################
+  ############ data disk section ###################
+  storage_data_disk {
+    name                = format("%s-graf-%03d-datadisk", var.prefix, count.index + 1)
+    disk_size_gb        = "10"
+    managed_disk_type   = "Standard_LRS"
+    create_option       = "Empty"
+    lun                 = 0
+  }
 
   storage_image_reference {
-    publisher = "Canonical"
-    offer     = "UbuntuServer"
-    sku       = "16.04.0-LTS"
+    publisher = "MicrosoftWindowsServer"
+    offer     = "WindowsServer"
+    sku       = "2019-Datacenter"
     version   = "latest"
-  }
+  }  
 
   os_profile {
-    computer_name  = format("tfwebvm%03d", count.index + 1)
+    computer_name  = format("grafvm%03d", count.index + 1)
 
-    ###### Replace with Keyvault variables #############
-    admin_username = var.admin_username
-    admin_password = var.admin_password
-  }
-
-  os_profile_linux_config {
-    disable_password_authentication = false
+    ######  Keyvault variables #############
+    admin_username = data.azurerm_key_vault_secret.dtek-VM-User.value
+    admin_password = data.azurerm_key_vault_secret.dtek-VM-password.value
   }
 
   tags = {
@@ -134,117 +143,69 @@ resource "azurerm_virtual_machine" "tfwebvm" {
   }
 }
 
-#################### VM extension [Convert to Azure Monitor] ##########
-resource "azurerm_virtual_machine_extension" "webvmext" {
-  count                = var.webcount
-  name                 = "webvmext"
-  virtual_machine_id   = azurerm_virtual_machine.tfwebvm[count.index].id
-  #-location             = var.location
-  #-resource_group_name  = azurerm_resource_group.tfrg.name
-  #-virtual_machine_name = azurerm_virtual_machine.tfwebvm[count.index].name
-  publisher            = "Microsoft.Azure.Extensions"
-  type                 = "CustomScript"
-  type_handler_version = "2.0"
+#################### ADD VM extension [Convert to Azure Monitor] ##########
 
-  settings = <<SETTINGS
-    {
-        "script": "IyEvYmluL3NoCgpzdWRvIGFwdC1nZXQgdXBkYXRlCnN1ZG8gYXB0LWdldCAteSBpbnN0YWxsIG5naW54Cg=="
-    }
-    SETTINGS
-
-
-  tags = {
-    environment = var.tag
-  }
-}
+### To Do ####
 
 ###################Load Balancer resource Setup #####################
 
-resource "azurerm_public_ip" "tflbpip" {
-  name                = "${var.prefix}-flbpip"
+resource "azurerm_public_ip" "graflbpip" {
+  name                = "${var.prefix}-graflbpip"
   location            = var.location
   resource_group_name = azurerm_resource_group.rg.name
   allocation_method   = "Static"
   sku                 = "Standard"
 }
 
-resource "azurerm_lb" "tflb" {
-  name                = "${var.prefix}lb"
+resource "azurerm_lb" "graflb" {
+  name                = "${var.prefix}graflb"
   location            = var.location
   resource_group_name = azurerm_resource_group.rg.name
   sku                 = "Standard"
 
   frontend_ip_configuration {
     name                 = "PublicIPAddress"
-    public_ip_address_id = azurerm_public_ip.tflbpip.id
+    public_ip_address_id = azurerm_public_ip.graflbpip.id
   }
 }
 
-resource "azurerm_lb_backend_address_pool" "tflbbackendpool" {
+resource "azurerm_lb_backend_address_pool" "graflbbackendpool" {
   resource_group_name = azurerm_resource_group.rg.name
-  loadbalancer_id     = azurerm_lb.tflb.id
+  loadbalancer_id     = azurerm_lb.graflb.id
   name                = "BackEndAddressPool"
-}
-
-resource "azurerm_lb_nat_rule" "lbnatrule" {
-  count                          = var.webcount
-  resource_group_name            = azurerm_resource_group.rg.name
-  loadbalancer_id                = azurerm_lb.tflb.id
-  name                           = "ssh-${count.index}"
-  protocol                       = "tcp"
-  frontend_port                  = "5000${count.index + 1}"
-  backend_port                   = 22
-  frontend_ip_configuration_name = "PublicIPAddress" # "${azurerm_lb.tflb.frontend_ip_configuration.name}" not working
 }
 
 resource "azurerm_lb_rule" "lb_rule" {
   resource_group_name            = azurerm_resource_group.rg.name
-  loadbalancer_id                = azurerm_lb.tflb.id
-  name                           = "LBRule"
+  loadbalancer_id                = azurerm_lb.graflb.id
+  name                           = "GrafLBRule"
   protocol                       = "tcp"
-  frontend_port                  = 80
-  backend_port                   = 80
+  frontend_port                  = 443
+  backend_port                   = 3000
   frontend_ip_configuration_name = "PublicIPAddress"
   enable_floating_ip             = false
-  backend_address_pool_id        = azurerm_lb_backend_address_pool.tflbbackendpool.id
+  backend_address_pool_id        = azurerm_lb_backend_address_pool.graflbbackendpool.id
   idle_timeout_in_minutes        = 5
   probe_id                       = azurerm_lb_probe.lb_probe.id
   depends_on                     = [azurerm_lb_probe.lb_probe]
 }
 
-resource "azurerm_lb_probe" "lb_probe" {
+resource "azurerm_lb_probe" "graflb_probe" {
   resource_group_name = azurerm_resource_group.rg.name
-  loadbalancer_id     = azurerm_lb.tflb.id
+  loadbalancer_id     = azurerm_lb.graflb.id
   name                = "tcpProbe"
   protocol            = "tcp"
-  port                = 80
+  port                = 3000
   interval_in_seconds = 5
   number_of_probes    = 2
 }
 
-#################  ASG  --- test this section ################################
-
-resource "azurerm_application_security_group" "application_security_group-asg-grafana" {
-  name                = "grafana"
-  location            = var.location
-  resource_group_name = azurerm_resource_group.rg.name
-}
 
 
-data "azurerm_network_interface" "network_interface-asg-assign" {
-  name                = "vm-nic01"
-  resource_group_name = azurerm_resource_group.rg.name
-}
-
-resource "azurerm_network_interface_application_security_group_association" "application_security_group_association" {
-  network_interface_id          = data.azurerm_network_interface.network_interface-asg-assign.id
-  ip_configuration_name         = "ipconfig1"
-  application_security_group_id = azurerm_application_security_group.application_security_group-asg-grafana.id
-}
 
 ############## Output ###########################
-output "weblb_pip" {
-  value = azurerm_public_ip.tflbpip.*.ip_address
+output "graflb_pip" {
+  value = azurerm_public_ip.graflbpip.*.ip_address
 }
 
 

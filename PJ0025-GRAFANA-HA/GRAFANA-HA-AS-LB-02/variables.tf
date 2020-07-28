@@ -23,22 +23,9 @@ variable "resource_group" {
   default = "dtek-grafana-rg02"
 }
 
-# admin password
-variable "admin_username" {
-  default = "azureuser"
-}
-
-variable "admin_keydata" {
-  default = "add_here"
-}
-
-variable "admin_password" {
-  default = "add_here"
-}
-
 # service variables
 variable "prefix" {
-  default = "DtekTFdemo"
+  default = "GrafHA"
 }
 
 variable "location" {
@@ -49,14 +36,10 @@ variable "vmsize" {
   default = "Standard_DS1_v2"
 }
 
-variable "webcount" {
-  default = 1
-}
-
-variable "appcount" {
-  default = 1
+variable "grafvmcount" {
+  default = 2
 }
 
 variable "tag" {
-  default = "demo"
+  default = "GrafHA"
 }

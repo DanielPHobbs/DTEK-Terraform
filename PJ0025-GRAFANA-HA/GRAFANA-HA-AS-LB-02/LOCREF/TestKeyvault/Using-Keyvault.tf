@@ -1,18 +1,30 @@
+
+provider "azurerm" {
+        features {}
+}
+
+data "azurerm_key_vault" "existing" {
+  name                = "MSDN-KeyVault"
+  resource_group_name = "MSDN-KeyVaults"
+}
+
 data "azurerm_key_vault_secret" "dtek-VM-password" {
 name = "DTEK-SRV-ADMIN-PASSWORD"
-vault_uri = "https://msdn-keyvault.vault.azure.net/"
+key_vault_id = data.azurerm_key_vault.existing.id
 }
 
 data "azurerm_key_vault_secret" "dtek-VM-User" {
 name = "DTEK-ADMIN-USER"
-vault_uri = "https://msdn-keyvault.vault.azure.net/"
+key_vault_id = data.azurerm_key_vault.existing.id
 }
 
 
 output "vm-user" {
   value = data.azurerm_key_vault_secret.dtek-VM-User.value
+}
 output "vm-password" {
   value = data.azurerm_key_vault_secret.dtek-VM-password.value
+}
 
 
 /*
