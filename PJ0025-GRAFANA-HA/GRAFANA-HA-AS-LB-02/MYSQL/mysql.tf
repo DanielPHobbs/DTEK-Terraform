@@ -1,29 +1,45 @@
 #https://www.terraform.io/docs/providers/azurerm/r/mysql_database.html
-
 #https://azure.microsoft.com/en-gb/pricing/details/mysql/
 
 provider "azurerm" {
-  # The "feature" block is required for AzureRM provider 2.x. 
-  # If you are using version 1.x, the "features" block is not allowed.
-  version = "~>2.0"
-  features {}
+subscription_id = var.subscription_id
+client_id = var.client_id
+client_secret = var.client_secret
+tenant_id = var.tenant_id
+features {}
+version  = ">=2.0.0"
+}
 
-# refer to an existing resource group
+# existing resource group
 data "azurerm_resource_group" "rg" {
-    name = "RG-GRAFANA1"
+    name = var.resource_group
     }
 
+data "azurerm_key_vault" "existing" {
+  name                = "MSDN-KeyVault"
+  resource_group_name = "MSDN-KeyVaults"
+}
+
+data "azurerm_key_vault_secret" "MySQL-password" {
+name = "MySQL-admin-password"
+key_vault_id = data.azurerm_key_vault.existing.id
+}
+
+data "azurerm_key_vault_secret" "MySQL-User" {
+name = "MySQL-admin-account"
+key_vault_id = data.azurerm_key_vault.existing.id
+}
 
 # Create mysql Instance 
 resource "azurerm_mysql_server" "grafanasrv" {
   name                = "grafana-mysqlserver" #LowerOnly
-  location            = "${var.location}"
-  resource_group_name = "${data.azurerm_resource_group.rg.name}"
+  location            = var.location
+  resource_group_name = data.azurerm_resource_group.rg.name
 
-  administrator_login          = "grafmysqladmin" #Admin username must be at least 1 characters and at most 16 characters.
-  administrator_login_password = "Dtek@2020!DBadmin09"
+  administrator_login          = data.azurerm_key_vault_secret.MySQL-User.value 
+  administrator_login_password = data.azurerm_key_vault_secret.MySQL-password.value
 
-   #{pricing tier}_{compute generation}_{vCores} £0.060/hour GB/month	£0.089
+   
   sku_name   = "B_Gen5_2"
 
 
@@ -42,8 +58,8 @@ resource "azurerm_mysql_server" "grafanasrv" {
 
 resource "azurerm_mysql_database" "GrafanaDB" {
   name                = "grafanadb"
-  resource_group_name = "${data.azurerm_resource_group.rg.name}"
-  server_name         = "${azurerm_mysql_server.grafanasrv.name}"
+  resource_group_name = data.azurerm_resource_group.rg.name
+  server_name         = azurerm_mysql_server.grafanasrv.name
   charset             = "utf8"
   collation           = "utf8_unicode_ci"
 }
@@ -52,15 +68,19 @@ resource "azurerm_mysql_database" "GrafanaDB" {
 #use one of these 
 resource "azurerm_mysql_firewall_rule" "grafanafw1" {
   name                = "grafanafw-r1"
-  resource_group_name = "${data.azurerm_resource_group.rg.name}"
-  server_name         = "${azurerm_mysql_server.grafanasrv.name}"
+  resource_group_name = data.azurerm_resource_group.rg.name
+  server_name         = azurerm_mysql_server.grafanasrv.name
   #add the grafana subnet startand end addresses
   start_ip_address    = "40.112.0.0"
   end_ip_address      = "40.112.255.255"
 }
+
+
+/*
 resource "azurerm_mysql_virtual_network_rule" "example" {
   name                = "grafana-mysql-vnet-rule"
   resource_group_name = "${data.azurerm_resource_group.rg.name}"
   server_name         = "${azurerm_mysql_server.grafanasrv.name}"
   subnet_id           = "${var.NWDeploySubNet.subnet_id}"
 }
+*/

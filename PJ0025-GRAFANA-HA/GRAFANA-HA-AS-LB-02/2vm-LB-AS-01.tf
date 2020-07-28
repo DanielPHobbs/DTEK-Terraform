@@ -5,6 +5,8 @@ subscription_id = var.subscription_id
 client_id = var.client_id
 client_secret = var.client_secret
 tenant_id = var.tenant_id
+features {}
+version  = ">=2.0.0"
 }
 
 ###### Create Resource Group #######
@@ -12,6 +14,8 @@ resource "azurerm_resource_group" "rg" {
   name     = var.resource_group
   location = var.location
 }
+
+################ Access Secrets in MSDN Keyvault #######  Currently erroring *************
 
 data "azurerm_key_vault" "existing" {
   name                = "MSDN-KeyVault"
@@ -27,6 +31,8 @@ data "azurerm_key_vault_secret" "dtek-VM-User" {
 name = "DTEK-ADMIN-USER"
 key_vault_id = data.azurerm_key_vault.existing.id
 }
+
+
 
 ################## Get VNET and SUBNET #########################
 
@@ -121,7 +127,7 @@ resource "azurerm_availability_set" "grafavset" {
 
 resource "azurerm_virtual_machine" "grafvm" {
   count                 = var.grafvmcount
-  name                  = "${var.prefix}grafvm${count.index}"
+  name                  = "${var.prefix}vm0${count.index}"
   location              = var.location
   resource_group_name   = azurerm_resource_group.rg.name
   network_interface_ids = [azurerm_network_interface.grafvmnic[count.index].id]
@@ -129,7 +135,7 @@ resource "azurerm_virtual_machine" "grafvm" {
   availability_set_id   = azurerm_availability_set.grafavset.id
 
   storage_os_disk {
-    name              = format("%s-graf-%03d-osdisk", var.prefix, count.index + 1)
+    name              = format("%s-VM-%03d-OSdisk", var.prefix, count.index + 1)
     caching           = "ReadWrite"
     create_option     = "FromImage"
     managed_disk_type = "Premium_LRS"
@@ -137,7 +143,7 @@ resource "azurerm_virtual_machine" "grafvm" {
 
   ############ data disk section ###################
   storage_data_disk {
-    name                = format("%s-graf-%03d-datadisk", var.prefix, count.index + 1)
+    name                = format("%s-VM-%03d-DATADisk", var.prefix, count.index + 1)
     disk_size_gb        = "10"
     managed_disk_type   = "Standard_LRS"
     create_option       = "Empty"
