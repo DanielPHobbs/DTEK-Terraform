@@ -10,10 +10,12 @@ features {}
 version  = ">=2.0.0"
 }
 
-# existing resource group
+###  existing resource group  ###
+
 data "azurerm_resource_group" "rg" {
     name = var.resource_group
     }
+    terraform
 
 data "azurerm_key_vault" "existing" {
   name                = "MSDN-KeyVault"
