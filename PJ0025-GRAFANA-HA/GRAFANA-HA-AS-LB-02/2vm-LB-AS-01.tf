@@ -66,13 +66,14 @@ resource "azurerm_network_interface_backend_address_pool_association" "grafbpool
   backend_address_pool_id = azurerm_lb_backend_address_pool.graflbbackendpool.id
 }
 
+/*
 resource "azurerm_network_interface_nat_rule_association" "grafnatruleassc" {
   count                 = var.grafvmcount
   network_interface_id  = element(azurerm_network_interface.grafvmnic.*.id, count.index)
   ip_configuration_name = "${var.prefix}-grafvmnic-config${count.index}"
   nat_rule_id           = element(azurerm_lb_nat_rule.lbnatrule.*.id, count.index)
 }
-
+*/
 ############################## ASG config  #############################
 
 resource "azurerm_application_security_group" "asg-grafana" {
@@ -181,7 +182,7 @@ resource "azurerm_lb_backend_address_pool" "graflbbackendpool" {
   name                = "BackEndAddressPool"
 }
 
-resource "azurerm_lb_rule" "lb_rule" {
+resource "azurerm_lb_rule" "graf01_lb_rule" {
   resource_group_name            = azurerm_resource_group.rg.name
   loadbalancer_id                = azurerm_lb.graflb.id
   name                           = "GrafLBRule"
@@ -192,8 +193,8 @@ resource "azurerm_lb_rule" "lb_rule" {
   enable_floating_ip             = false
   backend_address_pool_id        = azurerm_lb_backend_address_pool.graflbbackendpool.id
   idle_timeout_in_minutes        = 5
-  probe_id                       = azurerm_lb_probe.lb_probe.id
-  depends_on                     = [azurerm_lb_probe.lb_probe]
+  probe_id                       = azurerm_lb_probe.graflb_probe.id
+  depends_on                     = [azurerm_lb_probe.graflb_probe]
 }
 
 resource "azurerm_lb_probe" "graflb_probe" {
