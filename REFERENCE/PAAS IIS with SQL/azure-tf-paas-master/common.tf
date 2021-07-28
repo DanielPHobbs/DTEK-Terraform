@@ -6,7 +6,7 @@ provider "azurerm" {
     tenant_id       = var.tenant_id
 }
 
-# Create a resource group if it doesn’t exist
+# Create a resource group if it doesn't exist
 resource "azurerm_resource_group" "tfrg" {
     name     = "${var.prefix}-rg"
     location = var.location

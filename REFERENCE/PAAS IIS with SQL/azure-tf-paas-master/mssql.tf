@@ -1,4 +1,4 @@
-# Create a resource group if it doesn’t exist
+# Create a resource group if it doesn't exist
 resource "azurerm_resource_group" "tfrg2" {
     name     = "${var.prefix}-sa-rg"
     location = "southeastasia"

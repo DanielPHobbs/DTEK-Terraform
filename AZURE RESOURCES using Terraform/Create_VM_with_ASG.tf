@@ -6,7 +6,7 @@ variable "resourcename" {
 provider "azurerm" {
 }
 
-# Create a resource group if it doesn’t exist
+# Create a resource group if it doesn't exist
 resource "azurerm_resource_group" "DL2terraformgroup" {
     name     = "DL2ResourceGroup"
     location = "eastus"
