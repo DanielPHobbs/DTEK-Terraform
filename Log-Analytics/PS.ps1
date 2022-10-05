@@ -12,6 +12,10 @@ az account set --subscription "DTEK PRODUCTION - MSDN"
 
 terraform init
 
+terraform plan  -out main.tfplan
+
+terraform Validate  
+
 terraform apply main.tfplan
 
 az group show --name "dtek-bold-flea"
