@@ -1,6 +1,6 @@
 variable "prefix" {
   description = "The prefix which should be used for all resources in this example"
-  default="PE-BA-UK"
+  default="PE_BA_UK"
 }
 
 variable "location" {

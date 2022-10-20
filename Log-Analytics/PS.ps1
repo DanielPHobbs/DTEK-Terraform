@@ -8,7 +8,9 @@ az account list -o table --all --query "[].{TenantID: tenantId, Subscription: na
 
 az account show
 
-az account set --subscription "DTEK PRODUCTION - MSDN"
+az account set --subscription "DTEK TESTING ENVIROMENT"
+
+az account show
 
 terraform init
 
