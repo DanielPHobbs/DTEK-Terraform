@@ -1,9 +1,12 @@
-variable "resource_group_location" {
-  default     = "west europe"
-  description = "Location of the resource group."
+variable "prefix" {
+  description = "The prefix which should be used for all resources in this example"
+  default="PE-BA-UK"
 }
 
-variable "resource_group_name_prefix" {
-  default     = "dtek"
-  description = "Prefix of the resource group name that's combined with a random ID so name is unique in your Azure subscription."
+variable "location" {
+  description = "The Azure Region in which all resources in this example should be created."
+  default="West Europe"
 }
+
+
+

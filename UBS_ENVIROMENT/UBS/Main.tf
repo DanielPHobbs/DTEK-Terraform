@@ -30,7 +30,7 @@ resource "azurerm_automation_account" "example" {
 
 
 resource "azurerm_automation_runbook" "example" {
-  name                = "${var.prefix}-Get-AzureVMTutorial"
+  name                = "Get-AzureVMTutorial"
   location            = azurerm_resource_group.Automation.location
   resource_group_name = azurerm_resource_group.Automation.name
   automation_account_name = azurerm_automation_account.example.name
